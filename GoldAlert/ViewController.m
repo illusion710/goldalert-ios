@@ -27,12 +27,30 @@
     [self.priceFl setFont:[UIFont fontWithName:@"NeoSansPro-Light" size:17]];
     [self.perFl setFont:[UIFont fontWithName:@"NeoSansPro-Light" size:17]];
     [self.lastUpdatedAt setFont:[UIFont fontWithName:@"NeoSansPro-Light" size:10]];
+    
+    // add admob
+    self.admobView = [[GADBannerView alloc] initWithFrame:CGRectMake(0.0, self.view.frame.size.height-GAD_SIZE_320x50.height, GAD_SIZE_320x50.width, GAD_SIZE_320x50.height)];
+    self.admobView.adUnitID = @"a1531782e106bf4";
+    
+    self.admobView.rootViewController = self;
+    [self.view addSubview:self.admobView];
+    
+    [self.admobView loadRequest:[GADRequest request]];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
     
+    NSTimer *goldTimer = [NSTimer scheduledTimerWithTimeInterval:10.0 target:self selector:@selector(timerTicked:) userInfo:nil repeats:YES];
+    [goldTimer fire];
+}
+
+- (void)timerTicked:(NSTimer*)timer {
+    [self getGoldInfo];
+}
+
+- (void)getGoldInfo {
     NSString *requestURLString = @"http://api.goldprice.wisestar.net/ticker";
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     
@@ -42,54 +60,53 @@
     [manager.requestSerializer setValue:@"0c36329c-17ec-480a-a92f-f79d369e1b29" forHTTPHeaderField:@"X-GOLDPRICE-REST-API-KEY"];
     
     [manager GET:requestURLString
-        parameters:nil
-        success:^(AFHTTPRequestOperation *operation, id responseObject) {
-            NSDictionary *json = (NSDictionary *)responseObject;
-            NSDictionary *data = [NSJSONSerialization JSONObjectWithData: [json[@"data"] dataUsingEncoding:NSUTF8StringEncoding]
-                                            options: NSJSONReadingMutableContainers
-                                              error: nil];
-            
-            NSNumberFormatter *formatter = [NSNumberFormatter new];
-            [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
-            
-            NSString *highLowFormat = @"%@ 원";
-            NSString *perFlFormat = @"%@%%";
-            NSString *lateUpdatedAdFormat = @"Last update %@";
-            
-            NSString *price = data[@"price"];
-            NSString *formattedPrice = [formatter stringFromNumber:[NSNumber numberWithInteger:[price intValue]]];
-            [self.price setText:formattedPrice];
-
-            NSString *high = data[@"high"];
-            NSString *formattedHigh = [NSString stringWithFormat:highLowFormat, [formatter stringFromNumber:[NSNumber numberWithInteger:[high intValue]]]];
-            [self.high setText:formattedHigh];
-
-            NSString *low = data[@"low"];
-            NSString *formattedLow = [NSString stringWithFormat:highLowFormat, [formatter stringFromNumber:[NSNumber numberWithInteger:[low intValue]]]];
-            [self.low setText:formattedLow];
-            
-            NSString *priceFl = data[@"price_fl"];
-            NSString *formattedPriceFl = [formatter stringFromNumber:[NSNumber numberWithInteger:[priceFl intValue]]];
-            [self.priceFl setText:formattedPriceFl];
-            
-            NSString *perFl = data[@"per_fl"];
-            NSString *formattedPerFl = [NSString stringWithFormat:perFlFormat, perFl];
-            [self.perFl setText:formattedPerFl];
-            
-            NSDate *date = [NSDate date];
-            NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-            [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
-            [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
-            
-            NSString *formattedLastUpdatedAt = [NSString stringWithFormat:lateUpdatedAdFormat, [dateFormatter stringFromDate:date]];
-            [self.lastUpdatedAt setText:formattedLastUpdatedAt];
-            NSLog(@"success");
-        }
-        failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-            NSLog(@"failure");
-        }
-    ];
-    
+      parameters:nil
+         success:^(AFHTTPRequestOperation *operation, id responseObject) {
+             NSDictionary *json = (NSDictionary *)responseObject;
+             NSDictionary *data = [NSJSONSerialization JSONObjectWithData: [json[@"data"] dataUsingEncoding:NSUTF8StringEncoding]
+                                                                  options: NSJSONReadingMutableContainers
+                                                                    error: nil];
+             
+             NSNumberFormatter *formatter = [NSNumberFormatter new];
+             [formatter setNumberStyle:NSNumberFormatterDecimalStyle];
+             
+             NSString *highLowFormat = @"%@ 원";
+             NSString *perFlFormat = @"%@%%";
+             NSString *lateUpdatedAdFormat = @"Last update %@";
+             
+             NSString *price = data[@"price"];
+             NSString *formattedPrice = [formatter stringFromNumber:[NSNumber numberWithInteger:[price intValue]]];
+             [self.price setText:formattedPrice];
+             
+             NSString *high = data[@"high"];
+             NSString *formattedHigh = [NSString stringWithFormat:highLowFormat, [formatter stringFromNumber:[NSNumber numberWithInteger:[high intValue]]]];
+             [self.high setText:formattedHigh];
+             
+             NSString *low = data[@"low"];
+             NSString *formattedLow = [NSString stringWithFormat:highLowFormat, [formatter stringFromNumber:[NSNumber numberWithInteger:[low intValue]]]];
+             [self.low setText:formattedLow];
+             
+             NSString *priceFl = data[@"price_fl"];
+             NSString *formattedPriceFl = [formatter stringFromNumber:[NSNumber numberWithInteger:[priceFl intValue]]];
+             [self.priceFl setText:formattedPriceFl];
+             
+             NSString *perFl = data[@"per_fl"];
+             NSString *formattedPerFl = [NSString stringWithFormat:perFlFormat, perFl];
+             [self.perFl setText:formattedPerFl];
+             
+             NSDate *date = [NSDate date];
+             NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+             [dateFormatter setTimeStyle:NSDateFormatterMediumStyle];
+             [dateFormatter setDateStyle:NSDateFormatterMediumStyle];
+             
+             NSString *formattedLastUpdatedAt = [NSString stringWithFormat:lateUpdatedAdFormat, [dateFormatter stringFromDate:date]];
+             [self.lastUpdatedAt setText:formattedLastUpdatedAt];
+             NSLog(@"success");
+         }
+         failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+             NSLog(@"failure");
+         }
+     ];
 }
 
 - (void)didReceiveMemoryWarning
